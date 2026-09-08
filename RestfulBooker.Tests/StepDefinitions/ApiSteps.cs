@@ -20,7 +20,8 @@ public sealed class ApiSteps
         _state = state;
     }
 
-    private Booking BuildUniqueBooking()
+    private Booking BuildUniqueBooking(
+        bool depositPaid = true)
     {
         var uniqueSuffix =
             Guid.NewGuid()
@@ -30,7 +31,7 @@ public sealed class ApiSteps
             firstname: $"Auto{uniqueSuffix}",
             lastname: "Tester",
             totalprice: 450,
-            depositpaid: true,
+            depositpaid: depositPaid,
             bookingdates: new BookingDates(
                 DateTime.UtcNow
                     .AddDays(7)
@@ -98,6 +99,27 @@ public sealed class ApiSteps
             response.booking;
     }
 
+    [When("I create a booking with depositpaid set to {string}")]
+    public async Task CreateBookingWithDepositPaid(
+        string depositPaidValue)
+    {
+        var depositPaid =
+            bool.Parse(depositPaidValue);
+
+        _state.Expected =
+            BuildUniqueBooking(depositPaid);
+
+        var response =
+            await _api.Create(
+                _state.Expected);
+
+        _state.BookingId =
+            response.bookingid;
+
+        _state.Latest =
+            response.booking;
+    }
+
     [Then("the booking should be created")]
     public void BookingShouldBeCreated()
     {
@@ -109,6 +131,30 @@ public sealed class ApiSteps
 
             Assert.That(
                 _state.Latest!.firstname,
+                Is.EqualTo(
+                    _state.Expected!.firstname));
+        });
+    }
+
+    [Then("the booking should be created with depositpaid set to {string}")]
+    public void BookingShouldHaveDepositPaidValue(
+        string depositPaidValue)
+    {
+        var expectedDepositPaid =
+            bool.Parse(depositPaidValue);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                _state.BookingId,
+                Is.GreaterThan(0));
+
+            Assert.That(
+                _state.Latest!.depositpaid,
+                Is.EqualTo(expectedDepositPaid));
+
+            Assert.That(
+                _state.Latest.firstname,
                 Is.EqualTo(
                     _state.Expected!.firstname));
         });
