@@ -45,7 +45,8 @@ public sealed class ApiSteps
     [Given("the booking service is available")]
     public async Task BookingServiceIsAvailable()
     {
-        var response = await _api.Ping();
+        var response =
+            await _api.Ping();
 
         Assert.That(
             (int)response.StatusCode,
@@ -170,6 +171,26 @@ public sealed class ApiSteps
         Assert.That(
             _state.Latest.lastname,
             Is.EqualTo("Tester"));
+    }
+
+    [Then("the booking response should match the booking JSON schema")]
+    public async Task BookingResponseShouldMatchJsonSchema()
+    {
+        var response =
+            await _api.Get(
+                _state.BookingId);
+
+        Assert.That(
+            (int)response.StatusCode,
+            Is.EqualTo(200));
+
+        Assert.That(
+            response.Content,
+            Is.Not.Null.And.Not.Empty);
+
+        JsonSchemaValidator.Validate(
+            response.Content!,
+            "booking-schema.json");
     }
 
     [When("I replace the booking details")]

@@ -9,6 +9,7 @@ Feature: Manage a booking through its lifecycle
     When I create a unique booking
     Then the booking should be created
     And the booking should be retrievable
+    And the booking response should match the booking JSON schema
     When I replace the booking details
     Then the replaced details should be persisted
     When I partially update the price and additional needs
